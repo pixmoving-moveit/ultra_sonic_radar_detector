@@ -1,62 +1,34 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.8)
 project(ultra_sonic_radar_detector)
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  message_filters
-  pcl_conversions
-  pcl_ros
-  std_msgs
-  sensor_msgs
-  tf2
-  tf2_geometry_msgs
-  tf2_ros
-  geometry_msgs
-)
+# find dependencies
+find_package(ament_cmake_auto REQUIRED)
+ament_auto_find_build_dependencies()
 
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES ultra_sonic_radar_detector
-  CATKIN_DEPENDS roscpp message_filters pcl_conversions pcl_ros std_msgs sensor_msgs tf2 tf2_geometry_msgs tf2_ros geometry_msgs
-)
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
 include_directories(
   include
-  ${catkin_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# # Declare a C++ library
-add_library(${PROJECT_NAME}
+ament_auto_add_executable(socket_tcp_bridge_node
+  src/ultra_sonic_radar_detector_node.cpp
   src/ultra_sonic_radar_detector.cpp
 )
 
-add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-target_link_libraries(${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-)
-
-add_executable(${PROJECT_NAME}_node
-  src/ultra_sonic_radar_detector_main.cpp
-)
-
-add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-target_link_libraries(${PROJECT_NAME}_node
-  ${catkin_LIBRARIES}
-  ${PROJECT_NAME}
-)
-
-# catkin_install_python(PROGRAMS
-# DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY
+# install
+ament_auto_package(
+  INSTALL_TO_SHARE
   launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

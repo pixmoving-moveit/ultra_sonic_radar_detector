@@ -14,9 +14,11 @@
 #include "ultra_sonic_radar_detector/ultra_sonic_radar_detector.hpp"
 
 int main(int argc, char ** argv)
-{
-  ros::init(argc, argv, "ultra_sonic_radar_detector_node");
-  ultra_sonic_radar_detector::UltraSonicRadarDetector node;
-  ros::spin();
+{ 
+  setlocale(LC_ALL,"");
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<ultra_sonic_radar_detector::UltraSonicRadarDetector>();
+  rclcpp::spin(node);
+  rclcpp::shutdown();
   return 0;
 }
