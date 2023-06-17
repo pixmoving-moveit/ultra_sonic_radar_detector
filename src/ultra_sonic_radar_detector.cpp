@@ -48,7 +48,7 @@ void UltraSonicRadarDetector::transformPointCloud(
     try {
       geometry_msgs::msg::TransformStamped transformStamped =
         tf_buffer_.lookupTransform(param_.output_frame, in.header.frame_id, rclcpp::Time());
-      // std::cout << transformStamped << std::endl;
+      // RS_INFO <<  "transformStamped" << RS_REND;
       tf2::doTransform(in, out, transformStamped);
     } catch (tf2::TransformException & ex) {
       RCLCPP_WARN(this->get_logger(),
@@ -82,38 +82,92 @@ UltraSonicRadarDetector::UltraSonicRadarDetector():Node("ultra_sonic_radar_detec
   radar_1_sub_(this, "input/radar_1", rclcpp::QoS{1}.get_rmw_qos_profile()),
   radar_2_sub_(this, "input/radar_2", rclcpp::QoS{1}.get_rmw_qos_profile()),
   radar_3_sub_(this, "input/radar_3", rclcpp::QoS{1}.get_rmw_qos_profile()),
+
   radar_4_sub_(this, "input/radar_4", rclcpp::QoS{1}.get_rmw_qos_profile()),
   radar_5_sub_(this, "input/radar_5", rclcpp::QoS{1}.get_rmw_qos_profile()),
   radar_6_sub_(this, "input/radar_6", rclcpp::QoS{1}.get_rmw_qos_profile()),
   radar_7_sub_(this, "input/radar_7", rclcpp::QoS{1}.get_rmw_qos_profile()),
-  sync_(
-    SyncPolicy(5), radar_0_sub_, radar_1_sub_, radar_2_sub_, radar_3_sub_, radar_4_sub_,
-    radar_5_sub_, radar_6_sub_, radar_7_sub_)
-{
-  this->get_parameter("output_frame", param_.output_frame);
-  this->get_parameter("cloud_radius_m", param_.cloud_radius_m);
-  this->get_parameter("cloud_resolution_m", param_.cloud_resolution_m);
 
-  sync_.registerCallback(
-    std::bind(&UltraSonicRadarDetector::radarsCallback, this, _1, _2, _3, _4, _5, _6, _7, _8));
-  merged_pointcloud_pub_ = 
-    this->create_publisher<sensor_msgs::msg::PointCloud2>("output/pointcloud", rclcpp::SensorDataQoS());
+  radar_8_sub_(this, "input/radar_8", rclcpp::QoS{1}.get_rmw_qos_profile()),
+  radar_9_sub_(this, "input/radar_9", rclcpp::QoS{1}.get_rmw_qos_profile()),
+  radar_10_sub_(this, "input/radar_10", rclcpp::QoS{1}.get_rmw_qos_profile()),
+  radar_11_sub_(this, "input/radar_11", rclcpp::QoS{1}.get_rmw_qos_profile()),
+  sync_fr_(SyncPolicy(5), 
+    radar_0_sub_, radar_1_sub_, radar_2_sub_, radar_3_sub_, 
+    radar_4_sub_, radar_5_sub_, radar_6_sub_, radar_7_sub_),
+  sync_lr_(SyncPolicy(5), 
+    radar_8_sub_, radar_9_sub_, radar_10_sub_, radar_11_sub_)
+{
+  param_.output_frame = this->declare_parameter("output_frame", "base_link");
+  param_.cloud_radius_m = this->declare_parameter("cloud_radius_m", 0.2);
+  param_.cloud_resolution_m = this->declare_parameter("cloud_resolution_m", 0.01);
+
+  sync_fr_.registerCallback(
+    std::bind(&UltraSonicRadarDetector::radarsCallback_fr, this, _1, _2, _3, _4, _5, _6, _7, _8));
+
+  sync_lr_.registerCallback(
+    std::bind(&UltraSonicRadarDetector::radarsCallback_rl, this, _1, _2, _3, _4));
+
+  fr_merged_pointcloud_pub_ = 
+    this->create_publisher<sensor_msgs::msg::PointCloud2>("output/front_rear/pointcloud", rclcpp::SensorDataQoS());
+  
+  lr_merged_pointcloud_pub_ = 
+    this->create_publisher<sensor_msgs::msg::PointCloud2>("output/left_right/pointcloud", rclcpp::SensorDataQoS());
 }
 
 UltraSonicRadarDetector::~UltraSonicRadarDetector()
 {
   
+} 
+void UltraSonicRadarDetector::radarsCallback_rl(
+    const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_8_msg,
+    const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_9_msg,
+    const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_10_msg,
+    const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_11_msg)
+{
+  // Create 4 point clouds
+  sensor_msgs::msg::PointCloud2 cloud_0 =
+    rangeToPointCloud(input_radar_8_msg, param_.cloud_radius_m, param_.cloud_resolution_m);
+  sensor_msgs::msg::PointCloud2 cloud_1 =
+    rangeToPointCloud(input_radar_9_msg, param_.cloud_radius_m, param_.cloud_resolution_m);
+  sensor_msgs::msg::PointCloud2 cloud_2 =
+    rangeToPointCloud(input_radar_10_msg, param_.cloud_radius_m, param_.cloud_resolution_m);
+  sensor_msgs::msg::PointCloud2 cloud_3 =
+    rangeToPointCloud(input_radar_11_msg, param_.cloud_radius_m, param_.cloud_resolution_m);
+  
+  sensor_msgs::msg::PointCloud2 cloud_tranformed_0;
+  sensor_msgs::msg::PointCloud2 cloud_tranformed_1;
+  sensor_msgs::msg::PointCloud2 cloud_tranformed_2;
+  sensor_msgs::msg::PointCloud2 cloud_tranformed_3;
+ 
+  transformPointCloud(cloud_0, cloud_tranformed_0);
+  transformPointCloud(cloud_1, cloud_tranformed_1);
+  transformPointCloud(cloud_2, cloud_tranformed_2);
+  transformPointCloud(cloud_3, cloud_tranformed_3);
+
+  // concatenate pointclouds
+  sensor_msgs::msg::PointCloud2 output_clouds_0;
+  sensor_msgs::msg::PointCloud2 output_clouds_1;
+  sensor_msgs::msg::PointCloud2 output_clouds_2;
+  
+  combineClouds(cloud_tranformed_0, cloud_tranformed_1, output_clouds_0);
+  combineClouds(output_clouds_0, cloud_tranformed_2, output_clouds_1);
+  combineClouds(output_clouds_1, cloud_tranformed_3, output_clouds_2);
+  output_clouds_2.header.frame_id = param_.output_frame;
+  output_clouds_2.header.stamp = rclcpp::Time();
+  fr_merged_pointcloud_pub_->publish(output_clouds_2);
 }
 
-void UltraSonicRadarDetector::radarsCallback(
-  const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_0_msg,
-  const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_1_msg,
-  const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_2_msg,
-  const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_3_msg,
-  const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_4_msg,
-  const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_5_msg,
-  const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_6_msg,
-  const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_7_msg)
+void UltraSonicRadarDetector::radarsCallback_fr(
+    const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_0_msg,
+    const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_1_msg,
+    const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_2_msg,
+    const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_3_msg,
+
+    const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_4_msg,
+    const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_5_msg,
+    const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_6_msg,
+    const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_7_msg)
 {
   // Create 8 point clouds
   sensor_msgs::msg::PointCloud2 cloud_0 =
@@ -124,6 +178,7 @@ void UltraSonicRadarDetector::radarsCallback(
     rangeToPointCloud(input_radar_2_msg, param_.cloud_radius_m, param_.cloud_resolution_m);
   sensor_msgs::msg::PointCloud2 cloud_3 =
     rangeToPointCloud(input_radar_3_msg, param_.cloud_radius_m, param_.cloud_resolution_m);
+  
   sensor_msgs::msg::PointCloud2 cloud_4 =
     rangeToPointCloud(input_radar_4_msg, param_.cloud_radius_m, param_.cloud_resolution_m);
   sensor_msgs::msg::PointCloud2 cloud_5 =
@@ -141,6 +196,7 @@ void UltraSonicRadarDetector::radarsCallback(
   sensor_msgs::msg::PointCloud2 cloud_tranformed_5;
   sensor_msgs::msg::PointCloud2 cloud_tranformed_6;
   sensor_msgs::msg::PointCloud2 cloud_tranformed_7;
+
   transformPointCloud(cloud_0, cloud_tranformed_0);
   transformPointCloud(cloud_1, cloud_tranformed_1);
   transformPointCloud(cloud_2, cloud_tranformed_2);
@@ -149,6 +205,7 @@ void UltraSonicRadarDetector::radarsCallback(
   transformPointCloud(cloud_5, cloud_tranformed_5);
   transformPointCloud(cloud_6, cloud_tranformed_6);
   transformPointCloud(cloud_7, cloud_tranformed_7);
+
   // concatenate pointclouds
   sensor_msgs::msg::PointCloud2 output_clouds_0;
   sensor_msgs::msg::PointCloud2 output_clouds_1;
@@ -166,7 +223,7 @@ void UltraSonicRadarDetector::radarsCallback(
   combineClouds(output_clouds_5, cloud_tranformed_7, output_clouds_6);
   output_clouds_6.header.frame_id = param_.output_frame;
   output_clouds_6.header.stamp = rclcpp::Time();
-  merged_pointcloud_pub_->publish(output_clouds_6);
+  fr_merged_pointcloud_pub_->publish(output_clouds_6);
 }
 
 }  // namespace ultra_sonic_radar_detector

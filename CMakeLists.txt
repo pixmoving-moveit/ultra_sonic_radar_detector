@@ -21,7 +21,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-ament_auto_add_executable(socket_tcp_bridge_node
+ament_auto_add_executable(ultra_sonic_radar_detector_node
   src/ultra_sonic_radar_detector_node.cpp
   src/ultra_sonic_radar_detector.cpp
 )
