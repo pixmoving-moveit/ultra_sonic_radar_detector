@@ -17,7 +17,7 @@ def generate_launch_description():
 
     output_cloud_fr = DeclareLaunchArgument(
         'output_cloud_fr',
-        default_value='/sensing/ultra_sonic_radar/front-rear/pointcloud'
+        default_value='/sensing/ultra_sonic_radar/front_rear/pointcloud'
     )
     output_cloud_rl = DeclareLaunchArgument(
         'output_cloud_lr',
