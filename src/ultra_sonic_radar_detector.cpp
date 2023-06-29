@@ -47,7 +47,7 @@ void UltraSonicRadarDetector::transformPointCloud(
   if (param_.output_frame != in.header.frame_id) {
     try {
       geometry_msgs::msg::TransformStamped transformStamped =
-        tf_buffer_.lookupTransform(param_.output_frame, in.header.frame_id, rclcpp::Time());
+        tf_buffer_.lookupTransform(param_.output_frame, in.header.frame_id, tf2::TimePointZero);
       // RS_INFO <<  "transformStamped" << RS_REND;
       tf2::doTransform(in, out, transformStamped);
     } catch (tf2::TransformException & ex) {
@@ -154,7 +154,7 @@ void UltraSonicRadarDetector::radarsCallback_rl(
   combineClouds(output_clouds_0, cloud_tranformed_2, output_clouds_1);
   combineClouds(output_clouds_1, cloud_tranformed_3, output_clouds_2);
   output_clouds_2.header.frame_id = param_.output_frame;
-  output_clouds_2.header.stamp = rclcpp::Time();
+  output_clouds_2.header.stamp = this->now();
   fr_merged_pointcloud_pub_->publish(output_clouds_2);
 }
 
@@ -222,7 +222,7 @@ void UltraSonicRadarDetector::radarsCallback_fr(
   combineClouds(output_clouds_4, cloud_tranformed_6, output_clouds_5);
   combineClouds(output_clouds_5, cloud_tranformed_7, output_clouds_6);
   output_clouds_6.header.frame_id = param_.output_frame;
-  output_clouds_6.header.stamp = rclcpp::Time();
+  output_clouds_6.header.stamp = this->now();
   fr_merged_pointcloud_pub_->publish(output_clouds_6);
 }
 
