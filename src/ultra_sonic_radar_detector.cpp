@@ -92,7 +92,7 @@ UltraSonicRadarDetector::UltraSonicRadarDetector():Node("ultra_sonic_radar_detec
   radar_9_sub_(this, "input/radar_9", rclcpp::QoS{1}.get_rmw_qos_profile()),
   radar_10_sub_(this, "input/radar_10", rclcpp::QoS{1}.get_rmw_qos_profile()),
   radar_11_sub_(this, "input/radar_11", rclcpp::QoS{1}.get_rmw_qos_profile()),
-  sync_fr_(SyncPolicy(5), 
+  sync_fr_(SyncPolicy(10), 
     radar_0_sub_, radar_1_sub_, radar_2_sub_, radar_3_sub_, 
     radar_4_sub_, radar_5_sub_, radar_6_sub_, radar_7_sub_),
   sync_lr_(SyncPolicy(5), 
