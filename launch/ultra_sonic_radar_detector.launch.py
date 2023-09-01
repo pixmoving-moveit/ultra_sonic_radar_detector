@@ -21,7 +21,7 @@ def generate_launch_description():
     )
     output_cloud_rl = DeclareLaunchArgument(
         'output_cloud_lr',
-        default_value='/sensing/ultra_sonic_radar/leaf_right/pointcloud'
+        default_value='/sensing/ultra_sonic_radar/left_right/pointcloud'
     )
 
     cloud_radius_m = DeclareLaunchArgument(
@@ -48,10 +48,10 @@ def generate_launch_description():
                 ('input/radar_6', input_ultra_sonic_radar_topic + '_6'),
                 ('input/radar_7', input_ultra_sonic_radar_topic + '_7'),
 
-                ('input/radar_7', input_ultra_sonic_radar_topic + '_8'),
-                ('input/radar_7', input_ultra_sonic_radar_topic + '_9'),
-                ('input/radar_7', input_ultra_sonic_radar_topic + '_10'),
-                ('input/radar_7', input_ultra_sonic_radar_topic + '_11'),
+                ('input/radar_8', input_ultra_sonic_radar_topic + '_8'),
+                ('input/radar_9', input_ultra_sonic_radar_topic + '_9'),
+                ('input/radar_10', input_ultra_sonic_radar_topic + '_10'),
+                ('input/radar_11', input_ultra_sonic_radar_topic + '_11'),
                 ('output/front_rear/pointcloud', LaunchConfiguration("output_cloud_fr")),
                 ('output/left_right/pointcloud', LaunchConfiguration("output_cloud_lr"))
             ],

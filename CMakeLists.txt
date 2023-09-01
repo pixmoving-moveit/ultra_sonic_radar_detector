@@ -31,4 +31,5 @@ ament_auto_add_executable(ultra_sonic_radar_detector_node
 ament_auto_package(
   INSTALL_TO_SHARE
   launch
+  rviz
 )
