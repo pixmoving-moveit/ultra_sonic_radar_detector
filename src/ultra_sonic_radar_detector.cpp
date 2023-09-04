@@ -78,24 +78,24 @@ void UltraSonicRadarDetector::combineClouds(
 
 UltraSonicRadarDetector::UltraSonicRadarDetector():Node("ultra_sonic_radar_detector_node"),
   tf_buffer_(this->get_clock()), tf_listener_(tf_buffer_),
-  radar_0_sub_(this, "input/radar_0", rclcpp::QoS{1}.get_rmw_qos_profile()),
-  radar_1_sub_(this, "input/radar_1", rclcpp::QoS{1}.get_rmw_qos_profile()),
-  radar_2_sub_(this, "input/radar_2", rclcpp::QoS{1}.get_rmw_qos_profile()),
-  radar_3_sub_(this, "input/radar_3", rclcpp::QoS{1}.get_rmw_qos_profile()),
+  radar_0_sub_(this, "input/radar_0", rclcpp::SensorDataQoS().get_rmw_qos_profile()),
+  radar_1_sub_(this, "input/radar_1", rclcpp::SensorDataQoS().get_rmw_qos_profile()),
+  radar_2_sub_(this, "input/radar_2", rclcpp::SensorDataQoS().get_rmw_qos_profile()),
+  radar_3_sub_(this, "input/radar_3", rclcpp::SensorDataQoS().get_rmw_qos_profile()),
 
-  radar_4_sub_(this, "input/radar_4", rclcpp::QoS{1}.get_rmw_qos_profile()),
-  radar_5_sub_(this, "input/radar_5", rclcpp::QoS{1}.get_rmw_qos_profile()),
-  radar_6_sub_(this, "input/radar_6", rclcpp::QoS{1}.get_rmw_qos_profile()),
-  radar_7_sub_(this, "input/radar_7", rclcpp::QoS{1}.get_rmw_qos_profile()),
+  radar_4_sub_(this, "input/radar_4", rclcpp::SensorDataQoS().get_rmw_qos_profile()),
+  radar_5_sub_(this, "input/radar_5", rclcpp::SensorDataQoS().get_rmw_qos_profile()),
+  radar_6_sub_(this, "input/radar_6", rclcpp::SensorDataQoS().get_rmw_qos_profile()),
+  radar_7_sub_(this, "input/radar_7", rclcpp::SensorDataQoS().get_rmw_qos_profile()),
 
-  radar_8_sub_(this, "input/radar_8", rclcpp::QoS{1}.get_rmw_qos_profile()),
-  radar_9_sub_(this, "input/radar_9", rclcpp::QoS{1}.get_rmw_qos_profile()),
-  radar_10_sub_(this, "input/radar_10", rclcpp::QoS{1}.get_rmw_qos_profile()),
-  radar_11_sub_(this, "input/radar_11", rclcpp::QoS{1}.get_rmw_qos_profile()),
-  sync_fr_(SyncPolicy(10), 
+  radar_8_sub_(this, "input/radar_8", rclcpp::SensorDataQoS().get_rmw_qos_profile()),
+  radar_9_sub_(this, "input/radar_9", rclcpp::SensorDataQoS().get_rmw_qos_profile()),
+  radar_10_sub_(this, "input/radar_10", rclcpp::SensorDataQoS().get_rmw_qos_profile()),
+  radar_11_sub_(this, "input/radar_11", rclcpp::SensorDataQoS().get_rmw_qos_profile()),
+  sync_fr_(SyncPolicy_8(10), 
     radar_0_sub_, radar_1_sub_, radar_2_sub_, radar_3_sub_, 
     radar_4_sub_, radar_5_sub_, radar_6_sub_, radar_7_sub_),
-  sync_lr_(SyncPolicy(5), 
+  sync_lr_(SyncPolicy_4(5), 
     radar_8_sub_, radar_9_sub_, radar_10_sub_, radar_11_sub_)
 {
   param_.output_frame = this->declare_parameter("output_frame", "base_link");
@@ -114,11 +114,7 @@ UltraSonicRadarDetector::UltraSonicRadarDetector():Node("ultra_sonic_radar_detec
   lr_merged_pointcloud_pub_ = 
     this->create_publisher<sensor_msgs::msg::PointCloud2>("output/left_right/pointcloud", rclcpp::SensorDataQoS());
 }
-
-UltraSonicRadarDetector::~UltraSonicRadarDetector()
-{
-  
-} 
+ 
 void UltraSonicRadarDetector::radarsCallback_rl(
     const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_8_msg,
     const sensor_msgs::msg::Range::ConstSharedPtr & input_radar_9_msg,
@@ -155,7 +151,7 @@ void UltraSonicRadarDetector::radarsCallback_rl(
   combineClouds(output_clouds_1, cloud_tranformed_3, output_clouds_2);
   output_clouds_2.header.frame_id = param_.output_frame;
   output_clouds_2.header.stamp = this->now();
-  fr_merged_pointcloud_pub_->publish(output_clouds_2);
+  lr_merged_pointcloud_pub_->publish(output_clouds_2);
 }
 
 void UltraSonicRadarDetector::radarsCallback_fr(

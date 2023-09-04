@@ -50,9 +50,12 @@ namespace ultra_sonic_radar_detector
 
 typedef message_filters::sync_policies::ApproximateTime<
     sensor_msgs::msg::Range, sensor_msgs::msg::Range, sensor_msgs::msg::Range, sensor_msgs::msg::Range,
-    sensor_msgs::msg::Range, sensor_msgs::msg::Range, sensor_msgs::msg::Range, sensor_msgs::msg::Range> SyncPolicy;
-typedef message_filters::Synchronizer<SyncPolicy> Sync;
+    sensor_msgs::msg::Range, sensor_msgs::msg::Range, sensor_msgs::msg::Range, sensor_msgs::msg::Range> SyncPolicy_8;
+typedef message_filters::Synchronizer<SyncPolicy_8> Sync_8;
 
+typedef message_filters::sync_policies::ApproximateTime<
+    sensor_msgs::msg::Range, sensor_msgs::msg::Range, sensor_msgs::msg::Range, sensor_msgs::msg::Range> SyncPolicy_4;
+typedef message_filters::Synchronizer<SyncPolicy_4> Sync_4;
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -150,8 +153,8 @@ private:
 
 
   // synchronizer
-  Sync sync_fr_;
-  Sync sync_lr_;
+  Sync_8 sync_fr_;
+  Sync_4 sync_lr_;
 
 public:
   /**
@@ -159,11 +162,7 @@ public:
    * 
    */
   UltraSonicRadarDetector();
-  /**
-   * @brief Destroy the Ultra Sonic Radar Detector object
-   * 
-   */
-  ~UltraSonicRadarDetector();
+
   /**
    * @brief transform pointcloud from its our frame to output_frame
    * 
