@@ -8,7 +8,7 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    input_ultra_sonic_radar_topic='/sensing/ultra_sonic_radar/ultra_sonic_radar'
+    input_ultra_sonic_radar_topic='/sensing/ultrasonic/encircled/chenmu/ultra_sonic_radar'
     
     output_frame = DeclareLaunchArgument(
         'output_frame',
@@ -17,11 +17,11 @@ def generate_launch_description():
 
     output_cloud_fr = DeclareLaunchArgument(
         'output_cloud_fr',
-        default_value='/sensing/ultra_sonic_radar/front_rear/pointcloud'
+        default_value='front_rear/chenmu/pointcloud'
     )
     output_cloud_rl = DeclareLaunchArgument(
         'output_cloud_lr',
-        default_value='/sensing/ultra_sonic_radar/left_right/pointcloud'
+        default_value='left_right/chenmu/pointcloud'
     )
 
     cloud_radius_m = DeclareLaunchArgument(
